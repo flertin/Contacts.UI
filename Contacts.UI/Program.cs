@@ -21,14 +21,14 @@ namespace Contacts.UI
     interface ICommand
     {
         string Name { get; }
-        void Excute();
+        void Execute();
     }
 
     class AddCommand : ICommand
     {
         public string Name => "add";
 
-        public void Excute()
+        public void Execute()
         {
             var person = new Person();
             person.Name = Console.ReadLine();
@@ -40,9 +40,9 @@ namespace Contacts.UI
 
     class ListCommand : ICommand
     {
-        string ICommand.Name => "list";
+        public string Name => "list";
 
-        void ICommand.Excute()
+        public void Execute()
         {
             foreach (var item in PersonList.Active)
             {
@@ -51,21 +51,54 @@ namespace Contacts.UI
         }
     }
 
+    class DeleteCommand : ICommand {
+        public string Name => "del";
+        public void Execute() {
+            var index = int.Parse(Console.ReadLine());
+            PersonList.Active.RemoveAt(index);
+        }
+    }
+
+    class LinesWrapper : ICommand {
+        public ICommand Inner { get;private set; }
+        public LinesWrapper(ICommand cmd) {
+            Inner = cmd;
+        }
+
+        public string Name
+        {
+            get
+            {
+                return Inner.Name;
+            }
+        }
+
+        public void Execute() {
+            Console.WriteLine("-----------------");
+            Inner.Execute();
+            Console.WriteLine("=================");
+        }
+    }
+
+
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var commands = new List<ICommand>();
-            commands.Add(new AddCommand());
-            commands.Add(new ListCommand());
+            commands.Add(new LinesWrapper(new AddCommand()));
+            commands.Add(new LinesWrapper(new ListCommand()));
+            commands.Add(new DeleteCommand());
 
-            while (true)
+            while(true)
             {
                 var command = Console.ReadLine();
                 var target = commands.SingleOrDefault(c => c.Name == command);
                 if (target != null)
                 {
-                    target.Excute();
+                    
+                    target.Execute();
+                    
                 }
             }
         }
