@@ -11,6 +11,9 @@ namespace Contacts.UI
         public static List<Person> Active = new List<Person>();
     }
 
+    static class ConsoleContext {
+        public static IConsole Active { get; set; }
+    }
 
     class Person
     {
@@ -24,6 +27,21 @@ namespace Contacts.UI
         void Execute();
     }
 
+    interface IConsole {
+        string ReadLine();
+        void WriteLine(string str);
+    }
+
+    class ConsoleEx : IConsole {
+        public string ReadLine() {
+            return Console.ReadLine();
+        }
+
+        public void WriteLine(string str) {
+            Console.WriteLine(str);
+        }
+    }
+
     class AddCommand : ICommand
     {
         public string Name => "add";
@@ -31,8 +49,8 @@ namespace Contacts.UI
         public void Execute()
         {
             var person = new Person();
-            person.Name = Console.ReadLine();
-            person.Organization = Console.ReadLine();
+            person.Name = ConsoleContext.Active.ReadLine();
+            person.Organization = ConsoleContext.Active.ReadLine();
 
             PersonList.Active.Add(person);
         }
@@ -46,7 +64,7 @@ namespace Contacts.UI
         {
             foreach (var item in PersonList.Active)
             {
-                Console.WriteLine(item.Name + "; " + item.Organization);
+                ConsoleContext.Active.WriteLine(item.Name + "; " + item.Organization);
             }
         }
     }
@@ -54,7 +72,7 @@ namespace Contacts.UI
     class DeleteCommand : ICommand {
         public string Name => "del";
         public void Execute() {
-            var index = int.Parse(Console.ReadLine());
+            var index = int.Parse(ConsoleContext.Active.ReadLine());
             PersonList.Active.RemoveAt(index);
         }
     }
@@ -74,9 +92,9 @@ namespace Contacts.UI
         }
 
         public void Execute() {
-            Console.WriteLine("-----------------");
+            ConsoleContext.Active.WriteLine("-----------------");
             Inner.Execute();
-            Console.WriteLine("=================");
+            ConsoleContext.Active.WriteLine("=================");
         }
     }
 
@@ -85,6 +103,8 @@ namespace Contacts.UI
     {
         public static void Main(string[] args)
         {
+            ConsoleContext.Active = new ConsoleEx();
+
             var commands = new List<ICommand>();
             commands.Add(new LinesWrapper(new AddCommand()));
             commands.Add(new LinesWrapper(new ListCommand()));
@@ -92,13 +112,11 @@ namespace Contacts.UI
 
             while(true)
             {
-                var command = Console.ReadLine();
+                var command = ConsoleContext.Active.ReadLine();
                 var target = commands.SingleOrDefault(c => c.Name == command);
                 if (target != null)
                 {
-                    
                     target.Execute();
-                    
                 }
             }
         }
