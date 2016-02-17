@@ -33,6 +33,39 @@ namespace Contacts.UI
         void WriteLine(string str);
     }
 
+    class AuthWrapper : IConsole {
+        public string Login { get; set; }
+        public string Pass { get; set; }
+        public IConsole Inner { get; private set; }
+        private bool auth = false;
+        public AuthWrapper(IConsole inner) {
+            Inner = inner;
+        }
+
+        private void Auth() {
+            while(!auth) {
+                Inner.WriteLine("Enter auth:");
+                var login = Inner.ReadLine();
+                var password = Inner.ReadLine();
+                auth = login == Login && password == Pass;
+                if(auth) {
+                    Inner.WriteLine("Hello: " + Login);
+                }
+            }            
+        }
+
+        public string ReadLine() {
+            Auth();
+            var str = Inner.ReadLine();
+            return str;
+        }
+
+        public void WriteLine(string str) {
+            Auth();
+            Inner.WriteLine(str);
+        }
+    }
+
     class FileWrapper : IConsole {
         public IConsole Inner { get;private set; }
         public FileWrapper(IConsole inner) {
@@ -123,7 +156,11 @@ namespace Contacts.UI
     {
         public static void Main(string[] args)
         {
-            ConsoleContext.Active = new FileWrapper(new ConsoleEx());
+            ConsoleContext.Active = new AuthWrapper(new ConsoleEx()) {
+                Login="root",
+                Pass="password"
+
+            };
 
             var commands = new List<ICommand>();
             commands.Add(new LinesWrapper(new AddCommand()));
