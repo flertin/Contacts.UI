@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,9 +33,28 @@ namespace Contacts.UI
         void WriteLine(string str);
     }
 
+    class FileWrapper : IConsole {
+        public IConsole Inner { get;private set; }
+        public FileWrapper(IConsole inner) {
+            Inner = inner;
+        }
+
+        public string ReadLine() {
+            var str = Inner.ReadLine();
+            File.AppendAllLines("log.txt", new[] { str });
+            return str;
+        }
+
+        public void WriteLine(string str) {
+            File.AppendAllLines("log.txt", new[] { str });
+            Inner.WriteLine(str);
+        }
+    }
+
     class ConsoleEx : IConsole {
         public string ReadLine() {
-            return Console.ReadLine();
+            var str = Console.ReadLine();
+            return str;
         }
 
         public void WriteLine(string str) {
@@ -103,7 +123,7 @@ namespace Contacts.UI
     {
         public static void Main(string[] args)
         {
-            ConsoleContext.Active = new ConsoleEx();
+            ConsoleContext.Active = new FileWrapper(new ConsoleEx());
 
             var commands = new List<ICommand>();
             commands.Add(new LinesWrapper(new AddCommand()));
