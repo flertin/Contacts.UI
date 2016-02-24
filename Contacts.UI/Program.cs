@@ -2,28 +2,55 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Contacts.UI
-{
-    static class PersonList
-    {
-        public static List<Person> Active = new List<Person>();
+namespace Contacts.UI {
+    static class RepositoryContext {
+        public static IPersonRepository Active { get; set; }
+    }
+
+    class PersonRepository : IPersonRepository {
+        private List<Person> _items = new List<Person>();
+        public PersonRepository() {
+            Add(new Person {
+                Name = "name 1",
+                Organization = "Org1"
+            });
+
+            Add(new Person {
+                Name = "name 2",
+                Organization = "Org2"
+            });
+        }
+
+        public void Add(Person item) {
+            _items.Add(item);
+        }
+
+        public List<Person> GetAll() {
+            return _items.ToList();
+        }
+
+        public void Remove(int index) {
+            _items.RemoveAt(index);
+        }
+    }
+
+    interface IPersonRepository {
+        List<Person> GetAll();
+        void Add(Person item);
+        void Remove(int index);
     }
 
     static class ConsoleContext {
         public static IConsole Active { get; set; }
     }
 
-    class Person
-    {
+    class Person {
         public string Name { get; set; }
         public string Organization { get; set; }
     }
 
-    interface ICommand
-    {
+    interface ICommand {
         string Name { get; }
         void Execute();
     }
@@ -51,7 +78,7 @@ namespace Contacts.UI
                 if(auth) {
                     Inner.WriteLine("Hello: " + Login);
                 }
-            }            
+            }
         }
 
         public string ReadLine() {
@@ -67,7 +94,7 @@ namespace Contacts.UI
     }
 
     class FileWrapper : IConsole {
-        public IConsole Inner { get;private set; }
+        public IConsole Inner { get; private set; }
         public FileWrapper(IConsole inner) {
             Inner = inner;
         }
@@ -95,28 +122,23 @@ namespace Contacts.UI
         }
     }
 
-    class AddCommand : ICommand
-    {
+    class AddCommand : ICommand {
         public string Name => "add";
 
-        public void Execute()
-        {
+        public void Execute() {
             var person = new Person();
             person.Name = ConsoleContext.Active.ReadLine();
             person.Organization = ConsoleContext.Active.ReadLine();
 
-            PersonList.Active.Add(person);
+            RepositoryContext.Active.Add(person);
         }
     }
 
-    class ListCommand : ICommand
-    {
+    class ListCommand : ICommand {
         public string Name => "list";
 
-        public void Execute()
-        {
-            foreach (var item in PersonList.Active)
-            {
+        public void Execute() {
+            foreach(var item in RepositoryContext.Active.GetAll()) {
                 ConsoleContext.Active.WriteLine(item.Name + "; " + item.Organization);
             }
         }
@@ -126,12 +148,12 @@ namespace Contacts.UI
         public string Name => "del";
         public void Execute() {
             var index = int.Parse(ConsoleContext.Active.ReadLine());
-            PersonList.Active.RemoveAt(index);
+            RepositoryContext.Active.Remove(index);
         }
     }
 
     class LinesWrapper : ICommand {
-        public ICommand Inner { get;private set; }
+        public ICommand Inner { get; private set; }
         public LinesWrapper(ICommand cmd) {
             Inner = cmd;
         }
@@ -152,27 +174,24 @@ namespace Contacts.UI
     }
 
 
-    class Program
-    {
-        public static void Main(string[] args)
-        {
+    class Program {
+        public static void Main(string[] args) {
             ConsoleContext.Active = new AuthWrapper(new ConsoleEx()) {
-                Login="root",
-                Pass="password"
-
+                Login = "root",
+                Pass = "password"
             };
+
+            RepositoryContext.Active = new PersonRepository();
 
             var commands = new List<ICommand>();
             commands.Add(new LinesWrapper(new AddCommand()));
             commands.Add(new LinesWrapper(new ListCommand()));
             commands.Add(new DeleteCommand());
 
-            while(true)
-            {
+            while(true) {
                 var command = ConsoleContext.Active.ReadLine();
                 var target = commands.SingleOrDefault(c => c.Name == command);
-                if (target != null)
-                {
+                if(target != null) {
                     target.Execute();
                 }
             }
