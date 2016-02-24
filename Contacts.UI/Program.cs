@@ -2,52 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Contacts.DAL;
 
 namespace Contacts.UI {
-    static class RepositoryContext {
-        public static IPersonRepository Active { get; set; }
-    }
 
-    class PersonRepository : IPersonRepository {
-        private List<Person> _items = new List<Person>();
-        public PersonRepository() {
-            Add(new Person {
-                Name = "name 1",
-                Organization = "Org1"
-            });
 
-            Add(new Person {
-                Name = "name 2",
-                Organization = "Org2"
-            });
-        }
 
-        public void Add(Person item) {
-            _items.Add(item);
-        }
 
-        public List<Person> GetAll() {
-            return _items.ToList();
-        }
-
-        public void Remove(int index) {
-            _items.RemoveAt(index);
-        }
-    }
-
-    interface IPersonRepository {
-        List<Person> GetAll();
-        void Add(Person item);
-        void Remove(int index);
-    }
 
     static class ConsoleContext {
         public static IConsole Active { get; set; }
-    }
-
-    class Person {
-        public string Name { get; set; }
-        public string Organization { get; set; }
     }
 
     interface ICommand {
