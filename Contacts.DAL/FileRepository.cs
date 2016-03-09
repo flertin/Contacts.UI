@@ -13,7 +13,8 @@ namespace Contacts.DAL {
         }
 
         public void Add(Person item) {
-            throw new NotImplementedException();
+            string text = item.Name + Environment.NewLine + item.Organization + Environment.NewLine;
+            File.AppendAllText(_fileName, text);            
         }
 
         public List<Person> GetAll() {
@@ -38,7 +39,15 @@ namespace Contacts.DAL {
         }
 
         public void Remove(int index) {
-            throw new NotImplementedException();
+            var sb = new StringBuilder();
+            var persons = GetAll();
+            persons.RemoveAt(index);
+            foreach (var item in persons)
+            {
+                sb.AppendLine(item.Name);
+                sb.AppendLine(item.Organization);
+            }
+            File.WriteAllText(_fileName, sb.ToString());
         }
     }
 }

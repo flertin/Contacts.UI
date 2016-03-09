@@ -69,5 +69,49 @@ namespace Contacts.Tests {
                 Assert.AreEqual(exp.Organization, actual.Organization);
             }
         }
+
+        [TestMethod]
+        public void TestAdd()
+        {
+            var text = File.ReadAllText(fileName);
+            var person = new Person
+            {
+                Name = "Name4",
+                Organization = "Org4"
+            };
+            var expected = text + "Name4" + Environment.NewLine + "Org4" + Environment.NewLine;
+            var repository = new FileRepository(fileName);
+
+            repository.Add(person);
+
+            Assert.AreEqual(expected, File.ReadAllText(fileName));
+        }
+        [TestMethod]
+        public void TestDelete()
+           {
+            var expected = new StringBuilder();
+            var persons = new List<Person> {
+                new Person {
+                    Name="Name1",
+                    Organization="Org1"
+                },
+                new Person {
+                    Name="Name3",
+                    Organization="Org3"
+                }
+            };
+            foreach (var item in persons)
+            {
+                expected.AppendLine(item.Name);
+                expected.AppendLine(item.Organization);
+            }
+
+            var repository = new FileRepository(fileName);
+
+            repository.Remove(1);
+
+            Assert.AreEqual(expected.ToString(), File.ReadAllText(fileName));
+
+        }
     }
 }
